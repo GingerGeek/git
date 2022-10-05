@@ -765,11 +765,12 @@ static enum bisect_error bisect_start(struct bisect_terms *terms, const char **a
 		strbuf_read_file(&start_head, git_path_bisect_start(), 0);
 		strbuf_trim(&start_head);
 		if (!no_checkout) {
-			struct strvec argv = STRVEC_INIT;
+			struct child_process cmd = CHILD_PROCESS_INIT;
 
-			strvec_pushl(&argv, "checkout", start_head.buf,
+			cmd.git_cmd = 1;
+			strvec_pushl(&cmd.args, "checkout", start_head.buf,
 				     "--", NULL);
-			if (run_command_v_opt(argv.v, RUN_GIT_CMD)) {
+			if (run_command(&cmd)) {
 				res = error(_("checking out '%s' failed."
 						 " Try 'git bisect start "
 						 "<valid-branch>'."),
