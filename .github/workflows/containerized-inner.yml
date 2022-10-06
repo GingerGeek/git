@@ -25,7 +25,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install Build Dependenciees
-      run: ci/install-dependencies.sh
+      run: ci/install-docker-dependencies.sh
     - name: Build Git & Generate Archive
       run: ci/make-test-artifacts.sh artifacts
     - name: zip up tracked files
@@ -45,8 +45,6 @@ jobs:
         nr: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     container: ${{inputs.image}}
     steps:
-    - name: Install Build Dependenciees
-      run: ci/install-dependencies.sh
     - name: download tracked files and build artifacts
       uses: actions/download-artifact@v2
       with:
@@ -55,6 +53,8 @@ jobs:
     - name: extract tracked files and build artifacts
       shell: bash
       run: tar xf artifacts.tar.gz && tar xf tracked.tar.gz
+    - name: Install Build Dependenciees
+      run: ci/install-dependencies.sh
     - name: Run Tests
       run: ci/run-test-slice.sh ${{matrix.nr}} 10
     - name: print test failures
@@ -73,8 +73,6 @@ jobs:
     runs-on: ubuntu-latest
     container: ${{inputs.image}}
     steps:
-    - name: Install Build Dependenciees
-      run: ci/install-dependencies.sh
     - name: download tracked files and build artifacts
       uses: actions/download-artifact@v2
       with:
@@ -83,5 +81,7 @@ jobs:
     - name: extract tracked files and build artifacts
       shell: bash
       run: tar xf artifacts.tar.gz && tar xf tracked.tar.gz
+    - name: Install Build Dependenciees
+      run: ci/install-dependencies.sh
     - name: Run Tests
       run: ci/run-perf.sh
