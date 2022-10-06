@@ -49,7 +49,7 @@ esac
 if test -n "$run_tests"
 then
 	group "Run tests" make --quiet -j${CI_MAKECONCURRENCY} -C t T="$(cd t &&
-		../helper/test-tool path-utils slice-tests "$1" "$2" p[0-9]*.sh |
+		./helper/test-tool path-utils slice-tests "$1" "$2" p[0-9]*.sh |
 		tr '\n' ' ')" ||
 	handle_failed_tests
 else

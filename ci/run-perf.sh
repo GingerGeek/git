@@ -46,11 +46,19 @@ pedantic)
 	;;
 esac
 
+group "Clone Linux Repo" git clone https://github.com/torvalds/linux.git /tmp/linux-repo
+group "Clone current git main" git clone https://github.com/git/git.git /tmp/git-repo
+
+export GIT_PERF_MAKE_OPTS="-j${CI_MAKECONCURRENCY}"
+export GIT_PERF_REPO="/tmp/git-repo"
+export GIT_PERF_LARGE_REPO="/tmp/linux-repo"
+
 if test -n "$run_tests"
 then
     # Todo, slice this up!
-	group "Run performance tests" make -j${CI_MAKECONCURRENCY} --quiet -C t/perf/ all ||
-	handle_failed_tests
+	pushd t/perf
+	group "Run performance tests" ./run . /tmp/git-repo
+	popd
 else
 	echo "Performance Tests are skipped, this job didn't need to run!"
 	exit 1
