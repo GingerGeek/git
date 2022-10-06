@@ -5,7 +5,7 @@
 
 . ${0%/*}/lib.sh
 
-make coccicheck
+make -j${CI_MAKECONCURRENCY} coccicheck
 
 set +x
 
