@@ -30,7 +30,7 @@ jobs:
     name: Build
     runs-on: ${{inputs.pool}}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Install Build Dependenciees
       run: ci/install-dependencies.sh
     - name: Build Git & Generate Archive
@@ -38,21 +38,17 @@ jobs:
     - name: zip up tracked files
       run: git archive -o artifacts/tracked.tar.gz HEAD
     - name: upload tracked files and build artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: ${{inputs.jobname}}-artifacts
         path: artifacts 
   regular-test:
     name: Test
     needs: [regular-build]
-    strategy:
-      fail-fast: false
-      matrix:
-        nr: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     runs-on: ${{inputs.pool}}
     steps:
     - name: download tracked files and build artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: ${{inputs.jobname}}-artifacts
         path: ${{github.workspace}}
@@ -62,14 +58,14 @@ jobs:
     - name: Install Build Dependenciees
       run: ci/install-dependencies.sh
     - name: Run Tests
-      run: ci/run-test-slice.sh ${{matrix.nr}} 10
+      run: ci/run-test.sh
     - name: print test failures
       if: failure() && env.FAILED_TEST_ARTIFACTS != ''
       shell: bash
       run: ci/print-test-failures.sh
     - name: Upload failed tests' directories
       if: failure() && env.FAILED_TEST_ARTIFACTS != ''
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: failed-tests-${{inputs.jobname}}
         path: ${{env.FAILED_TEST_ARTIFACTS}}
@@ -79,7 +75,7 @@ jobs:
     runs-on: ${{inputs.pool}}
     steps:
     - name: download tracked files and build artifacts
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: ${{inputs.jobname}}-artifacts
         path: ${{github.workspace}}
