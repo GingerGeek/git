@@ -20,22 +20,49 @@ on:
 
 env:
   DEVELOPER: 1
+  CC: ${{inputs.cc}}
+  CC_PACKAGE: ${{inputs.cc_package}}
+  jobname: ${{inputs.jobname}}
+  runs_on_pool: ${{inputs.pool}}
 
 jobs:
-  regular-build-test:
-    name: Build and Test ${{inputs.jobname}} (${{inputs.pool}})
-    env:
-      CC: ${{inputs.cc}}
-      CC_PACKAGE: ${{inputs.cc_package}}
-      jobname: ${{inputs.jobname}}
-      runs_on_pool: ${{inputs.pool}}
+  regular-build:
+    name: Build
     runs-on: ${{inputs.pool}}
     steps:
     - uses: actions/checkout@v2
     - name: Install Build Dependenciees
       run: ci/install-dependencies.sh
-    - name: Build Git
-      run: ci/run-build-and-tests.sh  
+    - name: Build Git & Generate Archive
+      run: ci/make-test-artifacts.sh artifacts
+    - name: zip up tracked files
+      run: git archive -o artifacts/tracked.tar.gz HEAD
+    - name: upload tracked files and build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{inputs.jobname}}-artifacts
+        path: artifacts 
+  regular-test:
+    name: Test
+    needs: [regular-build]
+    strategy:
+      fail-fast: false
+      matrix:
+        nr: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    runs-on: ${{inputs.pool}}
+    steps:
+    - name: Install Build Dependenciees
+      run: ci/install-dependencies.sh
+    - name: download tracked files and build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: ${{inputs.jobname}}-artifacts
+        path: ${{github.workspace}}
+    - name: extract tracked files and build artifacts
+      shell: bash
+      run: tar xf artifacts.tar.gz && tar xf tracked.tar.gz
+    - name: Run Tests
+      run: ci/run-test-slice.sh ${{matrix.nr}} 10
     - name: print test failures
       if: failure() && env.FAILED_TEST_ARTIFACTS != ''
       shell: bash
@@ -46,3 +73,20 @@ jobs:
       with:
         name: failed-tests-${{inputs.jobname}}
         path: ${{env.FAILED_TEST_ARTIFACTS}}
+  regular-perf:
+    name: Performance tests
+    needs: [regular-build]
+    runs-on: ${{inputs.pool}}
+    steps:
+    - name: Install Build Dependenciees
+      run: ci/install-dependencies.sh
+    - name: download tracked files and build artifacts
+      uses: actions/download-artifact@v2
+      with:
+        name: ${{inputs.jobname}}-artifacts
+        path: ${{github.workspace}}
+    - name: extract tracked files and build artifacts
+      shell: bash
+      run: tar xf artifacts.tar.gz && tar xf tracked.tar.gz
+    - name: Run Tests
+      run: ci/run-perf.sh

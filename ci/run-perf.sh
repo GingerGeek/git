@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Build and test Git
+# Run Git performance in parallel
 #
 
 . ${0%/*}/lib.sh
@@ -9,6 +9,7 @@ case "$CI_OS_NAME" in
 windows*) cmd //c mklink //j t\\.prove "$(cygpath -aw "$cache_dir/.prove")";;
 *) ln -s "$cache_dir/.prove" t/.prove;;
 esac
+
 
 run_tests=t
 
@@ -45,12 +46,13 @@ pedantic)
 	;;
 esac
 
-group Build make
 if test -n "$run_tests"
 then
-	group "Run tests" make test ||
+    # Todo, slice this up!
+	group "Run performance tests" make -j${CI_MAKECONCURRENCY} --quiet -C t/perf/ all ||
 	handle_failed_tests
+else
+	echo "Performance Tests are skipped, this job didn't need to run!"
+	exit 1
 fi
 check_unignored_build_artifacts
-
-save_good_tree

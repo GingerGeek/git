@@ -282,5 +282,9 @@ esac
 
 MAKEFLAGS="$MAKEFLAGS CC=${CC:-cc}"
 
+# Python 3 is installed on all GitHub Action environments so this is a useful cross platform
+CI_MAKECONCURRENCY=$(python3 -c 'import multiprocessing as mp; print(int(mp.cpu_count() * 1.5))')
+echo "Will use the following -j value: ${CI_MAKECONCURRENCY}"
+
 end_group
 set -x

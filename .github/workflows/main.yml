@@ -1,4 +1,4 @@
-name: Linux Regular CI
+name: Git CI
 
 on: [push, pull_request]
 
