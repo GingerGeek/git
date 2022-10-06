@@ -1,0 +1,48 @@
+name: Regular Inner
+
+on:
+  workflow_call:
+    inputs:
+      jobname:
+        required: true
+        type: string
+      cc:
+        required: true
+        type: string
+
+      cc_package:
+        required: false
+        type: string
+
+      pool: 
+        required: true
+        type: string
+
+env:
+  DEVELOPER: 1
+
+jobs:
+  regular-build-test:
+    name: Build and Test ${{inputs.jobname}} (${{inputs.pool}})
+    env:
+      CC: ${{inputs.cc}}
+      CC_PACKAGE: ${{inputs.cc_package}}
+      jobname: ${{inputs.jobname}}
+      runs_on_pool: ${{inputs.pool}}
+    runs-on: ${{inputs.pool}}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Build Dependenciees
+      run: ci/install-dependencies.sh
+    - name: Build Git
+      run: ci/run-build-and-tests.sh  
+    - name: print test failures
+      if: failure() && env.FAILED_TEST_ARTIFACTS != ''
+      shell: bash
+      run: ci/print-test-failures.sh
+    - name: Upload failed tests' directories
+      if: failure() && env.FAILED_TEST_ARTIFACTS != ''
+      uses: actions/upload-artifact@v2
+      with:
+        name: failed-tests-${{inputs.jobname}}
+        path: ${{env.FAILED_TEST_ARTIFACTS}}

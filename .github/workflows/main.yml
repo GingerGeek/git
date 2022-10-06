@@ -1,4 +1,4 @@
-name: CI
+name: Linux Regular CI
 
 on: [push, pull_request]
 
@@ -251,27 +251,13 @@ jobs:
           - jobname: linux-leaks
             cc: gcc
             pool: ubuntu-latest
-    env:
-      CC: ${{matrix.vector.cc}}
-      CC_PACKAGE: ${{matrix.vector.cc_package}}
+    uses: ./.github/workflows/regular-inner.yml
+    with:
       jobname: ${{matrix.vector.jobname}}
-      runs_on_pool: ${{matrix.vector.pool}}
-    runs-on: ${{matrix.vector.pool}}
-    steps:
-    - uses: actions/checkout@v2
-    - run: ci/install-dependencies.sh
-    - run: ci/run-build-and-tests.sh
-    - name: print test failures
-      if: failure() && env.FAILED_TEST_ARTIFACTS != ''
-      shell: bash
-      run: ci/print-test-failures.sh
-    - name: Upload failed tests' directories
-      if: failure() && env.FAILED_TEST_ARTIFACTS != ''
-      uses: actions/upload-artifact@v2
-      with:
-        name: failed-tests-${{matrix.vector.jobname}}
-        path: ${{env.FAILED_TEST_ARTIFACTS}}
-  dockerized:
+      cc: ${{matrix.vector.cc}}
+      cc_package: ${{matrix.vector.cc_package}}
+      pool: ${{matrix.vector.pool}}
+  containerized:
     name: ${{matrix.vector.jobname}} (${{matrix.vector.image}})
     needs: ci-config
     if: needs.ci-config.outputs.enabled == 'yes'
@@ -286,24 +272,11 @@ jobs:
           image: daald/ubuntu32:xenial
         - jobname: pedantic
           image: fedora
-    env:
+    uses: ./.github/workflows/containerized-inner.yml
+    with:
       jobname: ${{matrix.vector.jobname}}
-    runs-on: ubuntu-latest
-    container: ${{matrix.vector.image}}
-    steps:
-    - uses: actions/checkout@v1
-    - run: ci/install-docker-dependencies.sh
-    - run: ci/run-build-and-tests.sh
-    - name: print test failures
-      if: failure() && env.FAILED_TEST_ARTIFACTS != ''
-      shell: bash
-      run: ci/print-test-failures.sh
-    - name: Upload failed tests' directories
-      if: failure() && env.FAILED_TEST_ARTIFACTS != ''
-      uses: actions/upload-artifact@v1
-      with:
-        name: failed-tests-${{matrix.vector.jobname}}
-        path: ${{env.FAILED_TEST_ARTIFACTS}}
+      image: ${{matrix.vector.image}}
+      os: ${{matrix.vector.os}}
   static-analysis:
     needs: ci-config
     if: needs.ci-config.outputs.enabled == 'yes'

@@ -1,0 +1,39 @@
+name: Containerized Inner
+
+on:
+  workflow_call:
+    inputs:
+      jobname:
+        required: true
+        type: string
+      image:
+        required: true
+        type: string
+      os:
+        required: false
+        type: string
+
+env:
+  DEVELOPER: 1
+
+jobs:
+  dockerized-build-test:
+    name: Build & Test ${{inputs.jobname}} (${{inputs.image}})
+    env:
+      jobname: ${{inputs.jobname}}
+    runs-on: ubuntu-latest
+    container: ${{inputs.image}}
+    steps:
+    - uses: actions/checkout@v1
+    - run: ci/install-docker-dependencies.sh
+    - run: ci/run-build-and-tests.sh
+    - name: print test failures
+      if: failure() && env.FAILED_TEST_ARTIFACTS != ''
+      shell: bash
+      run: ci/print-test-failures.sh
+    - name: Upload failed tests' directories
+      if: failure() && env.FAILED_TEST_ARTIFACTS != ''
+      uses: actions/upload-artifact@v1
+      with:
+        name: failed-tests-${{inputs.jobname}}
+        path: ${{env.FAILED_TEST_ARTIFACTS}}
