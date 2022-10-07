@@ -58,9 +58,10 @@ then
 	export GIT_PERF_REPO="/tmp/git-repo"
 	export GIT_PERF_LARGE_REPO="/tmp/linux-repo"
 
-	pushd t/perf
+	originalDir=${pwd}
+	cd t/perf
 	group "Run performance tests" ./run . /tmp/git-repo
-	popd
+	cd ${originalDir}
 else
 	echo "Performance Tests are skipped, this job didn't need to run!"
 	exit 1

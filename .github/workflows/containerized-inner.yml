@@ -30,7 +30,7 @@ jobs:
       run: ci/make-test-artifacts.sh artifacts
     - name: zip up tracked files
       run: |
-        bin-wrappers/git config --global --add safe.directory /__w/
+        bin-wrappers/git config --global --add safe.directory /__w/git/git
         bin-wrappers/git config --global --add safe.directory ${{github.workspace}}
         bin-wrappers/git archive -o artifacts/tracked.tar.gz HEAD
     - name: upload tracked files and build artifacts
