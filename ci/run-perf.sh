@@ -51,9 +51,8 @@ esac
 if test -n "$run_tests"
 then
     # Todo, slice this up!
-	. ./bin-wrappers/git
-	group "Clone Linux Repo" git clone https://github.com/torvalds/linux.git /tmp/linux-repo
-	group "Clone current git main" git clone https://github.com/git/git.git /tmp/git-repo
+	group "Clone Linux Repo" bin-wrappers/git clone https://github.com/torvalds/linux.git /tmp/linux-repo
+	group "Clone current git main" bin-wrappers/git clone https://github.com/git/git.git /tmp/git-repo
 
 	export GIT_PERF_MAKE_OPTS="-j${CI_MAKECONCURRENCY}"
 	export GIT_PERF_REPO="/tmp/git-repo"
